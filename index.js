@@ -3,6 +3,8 @@ const morgan = require('morgan')
 const app = express()
 const cors = require('cors')
 
+app.use(express.static('dist'))
+
 app.use(cors())
 
 app.use(express.json())
@@ -95,14 +97,14 @@ app.post('/api/persons', (request, response) => {
     response.json(newPerson)
 })
 
-// Middleware is requests are made to non-existant routes
+// Middleware if requests are made to non-existant routes
 const unknownEndpoint = (request, response) => {
     response.status(404).send({ error: 'unknown endpoint' })
   }
   
 app.use(unknownEndpoint)
 
-const PORT = 3001
+const PORT = process.env.PORT || 3001
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
 })
