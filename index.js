@@ -11,23 +11,24 @@ app.use(cors())
 app.use(express.json())
 
 morgan.token('body', (req) => {
-    if (req.method === 'POST') {
-      // Create a shallow copy of the request body without the 'id'
-      const { id, ...bodyWithoutId } = req.body
-      return JSON.stringify(bodyWithoutId)
-    }
-    return ''
-  })
+  if (req.method === 'POST') {
+    // Create a shallow copy of the request body without the 'id'
+    // eslint-disable-next-line no-unused-vars
+    const { id, ...bodyWithoutId } = req.body
+    return JSON.stringify(bodyWithoutId)
+  }
+  return ''
+})
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'))
 
 // GET info page of phonebook
 app.get('/info', (request, response) => {
-    Person.countDocuments({})
-      .then(count => {
-        const currentTime = new Date()
-        const info = `<p>Phonebook has info for ${count} people</p> <p>${currentTime}</p>`
-        response.send(info)
-      })
+  Person.countDocuments({})
+    .then(count => {
+      const currentTime = new Date()
+      const info = `<p>Phonebook has info for ${count} people</p> <p>${currentTime}</p>`
+      response.send(info)
+    })
 })
 
 // GET all persons
@@ -49,7 +50,7 @@ app.get('/api/persons/:id', (request, response, next) => {
 // DELETE a person from phonebook [ERROR HANDLER NOT DEFINED]
 app.delete('/api/persons/:id', (request, response, next) => {
   Person.findByIdAndDelete(request.params.id)
-    .then(person => response.status(204).end())
+    .then(() => response.status(204).end())
     .catch(error => next(error)) // If error, pass to error handler
 })
 
@@ -65,14 +66,14 @@ app.post('/api/persons', (request, response, next) => {
   }
   */
   if(!newPerson.name) {
-      return response.status(400).json({
-          error: "name is missing"
-      })
+    return response.status(400).json({
+      error: 'name is missing'
+    })
   }
   if(!newPerson.number) {
-      return response.status(400).json({
-          error: "number is missing"
-      })
+    return response.status(400).json({
+      error: 'number is missing'
+    })
   }
   // No errors
   const person = new Person({
@@ -89,16 +90,16 @@ app.post('/api/persons', (request, response, next) => {
 // Update the number of an existing person
 app.put('/api/persons/:id', (request, response, next) => {
   Person
-  .findByIdAndUpdate(request.params.id, request.body, {new: true, runValidators: true, context: 'query'})
-  .then(info => response.json(info))
-  .catch(error => next(error))
+    .findByIdAndUpdate(request.params.id, request.body, { new: true, runValidators: true, context: 'query' })
+    .then(info => response.json(info))
+    .catch(error => next(error))
 })
 
 // Middleware if requests are made to non-existant routes
 const unknownEndpoint = (request, response) => {
-    response.status(404).send({ error: 'unknown endpoint' })
+  response.status(404).send({ error: 'unknown endpoint' })
 }
-  
+
 app.use(unknownEndpoint)
 
 // Error handlers:
