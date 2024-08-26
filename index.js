@@ -54,7 +54,7 @@ app.delete('/api/persons/:id', (request, response, next) => {
 })
 
 // POST a person to phonebook
-app.post('/api/persons', (request, response) => {
+app.post('/api/persons', (request, response, next) => {
   const newPerson = request.body
   // Same name is now treated as an update
   /*
@@ -79,16 +79,19 @@ app.post('/api/persons', (request, response) => {
     name: newPerson.name,
     number: newPerson.number,
   })
-  person.save().then(savedPerson => {
-    response.json(savedPerson)
-  })
+  person.save()
+    .then(savedPerson => {
+      response.json(savedPerson)
+    })
+    .catch(error => next(error))
 })
 
 // Update the number of an existing person
-app.put('/api/persons/:id', (request, response) => {
+app.put('/api/persons/:id', (request, response, next) => {
   Person
-  .findByIdAndUpdate(request.params.id, request.body, {new: true})
+  .findByIdAndUpdate(request.params.id, request.body, {new: true, runValidators: true, context: 'query'})
   .then(info => response.json(info))
+  .catch(error => next(error))
 })
 
 // Middleware if requests are made to non-existant routes
@@ -101,17 +104,19 @@ app.use(unknownEndpoint)
 // Error handlers:
 
 // Malformatted ID handler (GET a person and DELETE a person)
-const malformattedID = (error, request, response, next) => {
+const errorHandler = (error, request, response, next) => {
   console.error(error.message)
 
   if (error.name === 'CastError') {
     return response.status(400).send({ error: 'malformatted id' })
-  } 
-
+  }
+  else if (error.name === 'ValidationError') {
+    return response.status(400).json({ error: error.message })
+  }
   next(error)
 }
 
-app.use(malformattedID)
+app.use(errorHandler)
 
 const PORT = process.env.PORT
 app.listen(PORT, () => {
